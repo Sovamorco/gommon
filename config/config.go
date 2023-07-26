@@ -16,51 +16,34 @@ import (
 
 var (
 	ErrNotPointer        = errors.New("dest has to be a pointer")
-	ErrNoLoader          = errors.New("no suitable loader")
 	ErrUnsupportedFormat = errors.New("unsupported file format")
 )
 
-type loader func(context.Context, string) (any, error)
-
-func getLoaders() map[string]loader {
-	return map[string]loader{
-		"CONFIG_PATH": loadConfigFS,
-	}
+func LoadConfig(ctx context.Context, filename string, dest any) error {
+	return LoadConfigVault(ctx, nil, filename, dest)
 }
 
-func LoadConfig(ctx context.Context, dest any) error {
-	return LoadConfigVault(ctx, nil, dest)
-}
-
-func LoadConfigVault(ctx context.Context, vc *vault.Client, dest any) error {
+func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, dest any) error {
 	if reflect.TypeOf(dest).Kind() != reflect.Pointer {
 		return ErrNotPointer
 	}
 
-	loaders := getLoaders()
-	for k, loader := range loaders {
-		ev := os.Getenv(k)
-		if ev != "" {
-			unint, err := loader(ctx, ev)
-			if err != nil {
-				return errorx.Decorate(err, "load uninterpolated config")
-			}
-
-			interpolated, err := interpolate(ctx, vc, unint)
-			if err != nil {
-				return errorx.Decorate(err, "interpolate config")
-			}
-
-			err = mapstructure.Decode(interpolated, dest)
-			if err != nil {
-				return errorx.Decorate(err, "decode interpolated map")
-			}
-
-			return nil
-		}
+	unint, err := loadConfigFS(ctx, filename)
+	if err != nil {
+		return errorx.Decorate(err, "load uninterpolated config")
 	}
 
-	return ErrNoLoader
+	interpolated, err := interpolate(ctx, vc, unint)
+	if err != nil {
+		return errorx.Decorate(err, "interpolate config")
+	}
+
+	err = mapstructure.Decode(interpolated, dest)
+	if err != nil {
+		return errorx.Decorate(err, "decode interpolated map")
+	}
+
+	return nil
 }
 
 func loadConfigFS(_ context.Context, fspath string) (any, error) {
