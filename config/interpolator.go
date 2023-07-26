@@ -59,6 +59,13 @@ func interpolateString(ctx context.Context, vc *vault.Client, v string) (any, er
 		}
 
 		return interpolate(ctx, vc, res)
+	case strings.HasPrefix(v, "FS->"):
+		res, err := loadConfigFS(strings.TrimPrefix(v, "FS->"))
+		if err != nil {
+			return nil, errorx.Decorate(err, "interpolate fs value")
+		}
+
+		return interpolate(ctx, vc, res)
 	}
 
 	return v, nil

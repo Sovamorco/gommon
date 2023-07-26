@@ -29,7 +29,7 @@ func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, des
 		return ErrNotPointer
 	}
 
-	unint, err := loadConfigFS(ctx, filename)
+	unint, err := loadConfigFS(filename)
 	if err != nil {
 		return errorx.Decorate(err, "load uninterpolated config")
 	}
@@ -47,7 +47,7 @@ func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, des
 	return nil
 }
 
-func loadConfigFS(_ context.Context, fspath string) (any, error) {
+func loadConfigFS(fspath string) (any, error) {
 	f, err := os.Open(fspath)
 	if err != nil {
 		return nil, errorx.Decorate(err, "open file")
