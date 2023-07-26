@@ -4,21 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/vault-client-go"
-	"github.com/joomcode/errorx"
 	"os"
 	"strings"
+
+	"github.com/hashicorp/vault-client-go"
+	"github.com/joomcode/errorx"
 )
 
-var (
-	ErrNoVaultClient = errors.New("vault client not supplied for config with vault interpolations")
-)
+var ErrNoVaultClient = errors.New("vault client not supplied for config with vault interpolations")
 
-type RequiredValueNotFound struct {
+type MissingEnvError struct {
 	EnvVarName string
 }
 
-func (e RequiredValueNotFound) Error() string {
+func (e MissingEnvError) Error() string {
 	return fmt.Sprintf("required environment variable \"%s\" is not defined", e.EnvVarName)
 }
 
@@ -72,7 +71,7 @@ func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (a
 
 	secret, err := client.Secrets.KvV2Read(ctx, inp)
 	if err != nil {
-		return nil, err
+		return nil, errorx.Decorate(err, "read secret")
 	}
 
 	return secret.Data.Data, nil
@@ -81,8 +80,9 @@ func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (a
 func EnvInterpolator(inp string) (string, error) {
 	val := os.Getenv(inp)
 	if val == "" {
-		return "", RequiredValueNotFound{EnvVarName: inp}
+		return "", MissingEnvError{EnvVarName: inp}
 	}
+
 	return val, nil
 }
 

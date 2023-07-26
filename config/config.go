@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/hashicorp/vault-client-go"
-	"github.com/joomcode/errorx"
-	"github.com/mitchellh/mapstructure"
-	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/hashicorp/vault-client-go"
+	"github.com/joomcode/errorx"
+	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 var (

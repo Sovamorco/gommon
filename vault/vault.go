@@ -3,20 +3,19 @@ package vault
 import (
 	"context"
 	"errors"
+	"os"
+
 	"github.com/hashicorp/vault-client-go"
 	"github.com/hashicorp/vault-client-go/schema"
 	"github.com/joomcode/errorx"
 	"github.com/sovamorco/gommon/config"
-	"os"
 )
 
 const (
-	CredsEnvVar = "VAULT_CONFIG"
+	CredsEnvVar = "VAULT_CONFIG" //nolint:gosec
 )
 
-var (
-	ErrNoAuth = errors.New("at least one auth method should be specified")
-)
+var ErrNoAuth = errors.New("at least one auth method should be specified")
 
 type AppRoleConfig struct {
 	RoleID   string `mapstructure:"role_id"`
@@ -31,7 +30,7 @@ type Creds struct {
 func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 	credsPath := os.Getenv(CredsEnvVar)
 	if credsPath == "" {
-		return nil, config.RequiredValueNotFound{EnvVarName: CredsEnvVar}
+		return nil, config.MissingEnvError{EnvVarName: CredsEnvVar}
 	}
 
 	var creds Creds
