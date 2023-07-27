@@ -23,8 +23,9 @@ type AppRoleConfig struct {
 }
 
 type Creds struct {
-	Host    string         `mapstructure:"host"`
-	AppRole *AppRoleConfig `mapstructure:"approle"`
+	Host       string        `mapstructure:"host"`
+	Method     string        `mapstructure:"method"`
+	Parameters AppRoleConfig `mapstructure:"parameters"`
 }
 
 func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
@@ -40,7 +41,7 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 		return nil, errorx.Decorate(err, "load vault credentials")
 	}
 
-	if creds.AppRole == nil {
+	if creds.Method != "approle" {
 		return nil, ErrNoAuth
 	}
 
@@ -53,8 +54,8 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 
 	auth, err := vc.Auth.AppRoleLogin(ctx,
 		schema.AppRoleLoginRequest{
-			RoleId:   creds.AppRole.RoleID,
-			SecretId: creds.AppRole.SecretID,
+			RoleId:   creds.Parameters.RoleID,
+			SecretId: creds.Parameters.SecretID,
 		},
 	)
 	if err != nil {
