@@ -78,7 +78,7 @@ func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (a
 
 	var options []vault.RequestOption
 	if strings.HasPrefix(inp, "/") {
-		split := strings.SplitN(strings.TrimPrefix(inp, "/"), "/", 1)
+		split := strings.SplitN(strings.TrimPrefix(inp, "/"), "/", 2)
 		options = append(options, vault.WithMountPath(split[0]))
 		inp = split[1]
 	}
