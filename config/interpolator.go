@@ -55,14 +55,14 @@ func interpolateString(ctx context.Context, vc *vault.Client, v string) (any, er
 	case strings.HasPrefix(v, "VAULT->"):
 		res, err := VaultInterpolator(ctx, strings.TrimPrefix(v, "VAULT->"), vc)
 		if err != nil {
-			return nil, errorx.Decorate(err, "interpolate vault value")
+			return nil, errorx.Decorate(err, fmt.Sprintf("interpolate vault value %s", v))
 		}
 
 		return interpolate(ctx, vc, res)
 	case strings.HasPrefix(v, "FS->"):
 		res, err := loadConfigFS(strings.TrimPrefix(v, "FS->"))
 		if err != nil {
-			return nil, errorx.Decorate(err, "interpolate fs value")
+			return nil, errorx.Decorate(err, fmt.Sprintf("interpolate fs value %s", v))
 		}
 
 		return interpolate(ctx, vc, res)
