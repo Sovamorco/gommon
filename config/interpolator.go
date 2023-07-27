@@ -76,7 +76,14 @@ func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (a
 		return nil, ErrNoVaultClient
 	}
 
-	secret, err := client.Secrets.KvV2Read(ctx, inp)
+	var options []vault.RequestOption
+	if strings.HasPrefix(inp, "/") {
+		split := strings.SplitN(strings.TrimPrefix(inp, "/"), "/", 1)
+		options = append(options, vault.WithMountPath(split[0]))
+		inp = split[1]
+	}
+
+	secret, err := client.Secrets.KvV2Read(ctx, inp, options...)
 	if err != nil {
 		return nil, errorx.Decorate(err, "read secret")
 	}
