@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/hashicorp/vault-client-go"
 	"github.com/hashicorp/vault-client-go/schema"
@@ -12,7 +13,9 @@ import (
 )
 
 const (
-	CredsEnvVar = "VAULT_CONFIG" //nolint:gosec
+	CredsEnvVar  = "VAULT_CONFIG" //nolint:gosec
+	RenewTimeout = 60 * time.Second
+	RenewBuffer  = 30 * time.Minute
 )
 
 var ErrNoAuth = errors.New("at least one auth method should be specified")
@@ -67,5 +70,23 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 		return nil, errorx.Decorate(err, "set token")
 	}
 
+	go renew(ctx, vc, time.Duration(auth.Auth.LeaseDuration)*time.Second)
+
 	return vc, nil
+}
+
+func renew(ctx context.Context, vc *vault.Client, leaseDur time.Duration) {
+	ctx = context.WithoutCancel(ctx)
+
+	time.Sleep(leaseDur - RenewBuffer)
+
+	ctx, cancel := context.WithTimeout(ctx, RenewTimeout)
+	defer cancel()
+
+	a, err := vc.Auth.TokenRenewSelf(ctx, *schema.NewTokenRenewSelfRequestWithDefaults())
+	if err != nil {
+		return
+	}
+
+	go renew(ctx, vc, time.Duration(a.Auth.LeaseDuration)*time.Second)
 }
