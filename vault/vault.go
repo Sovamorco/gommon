@@ -83,7 +83,7 @@ func renew(ctx context.Context, vc *vault.Client, leaseDur time.Duration) {
 	ctx, cancel := context.WithTimeout(ctx, RenewTimeout)
 	defer cancel()
 
-	a, err := vc.Auth.TokenRenewSelf(ctx, *schema.NewTokenRenewSelfRequestWithDefaults())
+	a, err := vc.Auth.TokenRenewSelf(ctx, schema.TokenRenewSelfRequest{}) //nolint:exhaustruct
 	if err != nil {
 		return
 	}

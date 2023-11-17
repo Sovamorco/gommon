@@ -1,3 +1,7 @@
+run:
+  skip-dirs:
+  - temp
+
 linters:
   enable-all: true
   disable:
