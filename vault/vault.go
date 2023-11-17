@@ -15,7 +15,7 @@ import (
 const (
 	CredsEnvVar  = "VAULT_CONFIG" //nolint:gosec
 	RenewTimeout = 60 * time.Second
-	RenewBuffer  = 30 * time.Minute
+	RenewBuffer  = 5 * time.Minute
 )
 
 var ErrNoAuth = errors.New("at least one auth method should be specified")
