@@ -26,10 +26,8 @@ type AppRoleConfig struct {
 }
 
 type Creds struct {
-	Host            string         `mapstructure:"host"`
-	TrustedCertPath string         `mapstructure:"trusted_cert_path"`
-	Method          string         `mapstructure:"method"`
-	Parameters      *AppRoleConfig `mapstructure:"parameters"`
+	Method     string         `mapstructure:"method"`
+	Parameters *AppRoleConfig `mapstructure:"parameters"`
 }
 
 func approleLogin(ctx context.Context, vc *vault.Client, creds *Creds) error {
@@ -58,25 +56,9 @@ func workloadLogin() error {
 }
 
 func getWorkloadIdentityConfig() (*Creds, error) {
-	host := os.Getenv("VAULT_HOST")
-	if host == "" {
-		return nil, config.MissingEnvError{
-			EnvVarName: "VAULT_HOST",
-		}
-	}
-
-	ca_cert := os.Getenv("VAULT_CA_CERT")
-	if ca_cert == "" {
-		return nil, config.MissingEnvError{
-			EnvVarName: "VAULT_CA_CERT",
-		}
-	}
-
 	return &Creds{
-		Host:            host,
-		TrustedCertPath: ca_cert,
-		Method:          "workload",
-		Parameters:      nil,
+		Method:     "workload",
+		Parameters: nil,
 	}, nil
 }
 
@@ -99,12 +81,7 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 	}
 
 	vc, err := vault.New(
-		vault.WithAddress(creds.Host),
-		vault.WithTLS(vault.TLSConfiguration{
-			ServerCertificate: vault.ServerCertificateEntry{
-				FromFile: creds.TrustedCertPath,
-			},
-		}),
+		vault.WithEnvironment(),
 	)
 	if err != nil {
 		return nil, errorx.Decorate(err, "create vault client")
