@@ -66,7 +66,7 @@ func getWorkloadIdentityConfig() (*Creds, error) {
 	}
 
 	ca_cert := os.Getenv("VAULT_CA_CERT")
-	if ca_cert != "" {
+	if ca_cert == "" {
 		return nil, config.MissingEnvError{
 			EnvVarName: "VAULT_CA_CERT",
 		}
