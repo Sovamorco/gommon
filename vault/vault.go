@@ -26,35 +26,13 @@ type AppRoleConfig struct {
 }
 
 type Creds struct {
-	Host       string        `mapstructure:"host"`
-	Method     string        `mapstructure:"method"`
-	Parameters AppRoleConfig `mapstructure:"parameters"`
+	Host            string         `mapstructure:"host"`
+	TrustedCertPath string         `mapstructure:"trusted_cert_path"`
+	Method          string         `mapstructure:"method"`
+	Parameters      *AppRoleConfig `mapstructure:"parameters"`
 }
 
-func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
-	credsPath := os.Getenv(CredsEnvVar)
-	if credsPath == "" {
-		return nil, config.MissingEnvError{EnvVarName: CredsEnvVar}
-	}
-
-	var creds Creds
-
-	err := config.LoadConfig(ctx, credsPath, &creds)
-	if err != nil {
-		return nil, errorx.Decorate(err, "load vault credentials")
-	}
-
-	if creds.Method != "approle" {
-		return nil, ErrNoAuth
-	}
-
-	vc, err := vault.New(
-		vault.WithAddress(creds.Host),
-	)
-	if err != nil {
-		return nil, errorx.Decorate(err, "create vault client")
-	}
-
+func approleLogin(ctx context.Context, vc *vault.Client, creds *Creds) error {
 	auth, err := vc.Auth.AppRoleLogin(ctx,
 		schema.AppRoleLoginRequest{
 			RoleId:   creds.Parameters.RoleID,
@@ -62,15 +40,88 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 		},
 	)
 	if err != nil {
-		return nil, errorx.Decorate(err, "authenticate")
+		return errorx.Decorate(err, "authenticate")
 	}
 
 	err = vc.SetToken(auth.Auth.ClientToken)
 	if err != nil {
-		return nil, errorx.Decorate(err, "set token")
+		return errorx.Decorate(err, "set token")
 	}
 
 	go renew(ctx, vc, time.Duration(auth.Auth.LeaseDuration)*time.Second)
+
+	return nil
+}
+
+func workloadLogin() error {
+	return nil
+}
+
+func getWorkloadIdentityConfig() (*Creds, error) {
+	host := os.Getenv("VAULT_HOST")
+	if host == "" {
+		return nil, config.MissingEnvError{
+			EnvVarName: "VAULT_HOST",
+		}
+	}
+
+	ca_cert := os.Getenv("VAULT_CA_CERT")
+	if ca_cert != "" {
+		return nil, config.MissingEnvError{
+			EnvVarName: "VAULT_CA_CERT",
+		}
+	}
+
+	return &Creds{
+		Host:            host,
+		TrustedCertPath: ca_cert,
+		Method:          "workload",
+		Parameters:      nil,
+	}, nil
+}
+
+func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
+	var creds *Creds
+
+	var err error
+
+	credsPath := os.Getenv(CredsEnvVar)
+	if credsPath == "" {
+		creds, err = getWorkloadIdentityConfig()
+		if err != nil {
+			return nil, errorx.Decorate(err, "get workload identity config")
+		}
+	} else {
+		err = config.LoadConfig(ctx, credsPath, &creds)
+		if err != nil {
+			return nil, errorx.Decorate(err, "load vault credentials")
+		}
+	}
+
+	vc, err := vault.New(
+		vault.WithAddress(creds.Host),
+		vault.WithTLS(vault.TLSConfiguration{
+			ServerCertificate: vault.ServerCertificateEntry{
+				FromFile: creds.TrustedCertPath,
+			},
+		}),
+	)
+	if err != nil {
+		return nil, errorx.Decorate(err, "create vault client")
+	}
+
+	switch creds.Method {
+	case "approle":
+		err = approleLogin(ctx, vc, creds)
+	case "workload":
+		err = workloadLogin()
+	default:
+		err = ErrNoAuth
+	}
+
+	if err != nil {
+		return nil, errorx.Decorate(err, "error logging in with method %s", creds.Method)
+	}
 
 	return vc, nil
 }
