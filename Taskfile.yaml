@@ -17,7 +17,6 @@ tasks:
       - "go" has to be in PATH
     cmds:
     - go mod tidy
-    - go mod vendor
 
   fmt:
     desc:    This task runs go fmt on whole project
@@ -37,3 +36,15 @@ tasks:
     cmds:
     - task: fmt
     - golangci-lint run -v {{.CLI_ARGS}}
+
+  publish:
+    desc:    This task publishes the project with specified version
+    summary: |
+      This task publishes the project with specified version
+      Dependencies:
+      - "go" has to be in PATH
+      - "git" has to be in PATH
+    cmds:
+    - git tag {{.CLI_ARGS}}
+    - git push origin {{.CLI_ARGS}}
+    - go list -m github.com/sovamorco/gommon@{{.CLI_ARGS}}
