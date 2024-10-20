@@ -35,4 +35,5 @@ tasks:
       Dependencies:
       - "golangci-lint" - (https://golangci-lint.run/usage/install/#local-installation)
     cmds:
+    - task: fmt
     - golangci-lint run -v {{.CLI_ARGS}}
