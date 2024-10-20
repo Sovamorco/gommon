@@ -26,7 +26,7 @@ tasks:
       Dependencies:
       - "gofumpt" - `go install mvdan.cc/gofumpt@latest`
     cmds:
-    - gofumpt -l -w vault config
+    - gofumpt -l -w $(git ls-files '*.go')
 
   lint:
     desc:    This task runs go lint tool on the whole project

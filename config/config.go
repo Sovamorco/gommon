@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/vault-client-go"
 	"github.com/joomcode/errorx"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
@@ -25,10 +24,6 @@ var (
 )
 
 func LoadConfig(ctx context.Context, filename string, dest any) error {
-	return LoadConfigVault(ctx, nil, filename, dest)
-}
-
-func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, dest any) error {
 	if reflect.TypeOf(dest).Kind() != reflect.Pointer {
 		return ErrNotPointer
 	}
@@ -38,7 +33,7 @@ func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, des
 		return errorx.Decorate(err, "load uninterpolated config")
 	}
 
-	interpolated, err := interpolate(ctx, vc, unint)
+	interpolated, err := interpolate(ctx, unint)
 	if err != nil {
 		return errorx.Decorate(err, "interpolate config")
 	}
