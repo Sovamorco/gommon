@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/joomcode/errorx"
+	"github.com/sovamorco/errorx"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 )

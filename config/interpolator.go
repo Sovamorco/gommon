@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/joomcode/errorx"
+	"github.com/sovamorco/errorx"
 )
 
 type MissingEnvError struct {

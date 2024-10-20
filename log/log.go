@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/joomcode/errorx"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/sovamorco/errorx"
 )
 
 type zerologWriter struct {
