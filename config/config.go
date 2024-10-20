@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/sovamorco/errorx"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sovamorco/errorx"
 	"gopkg.in/yaml.v3"
 )
 
