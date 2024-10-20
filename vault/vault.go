@@ -55,11 +55,11 @@ func workloadLogin() error {
 	return nil
 }
 
-func getWorkloadIdentityConfig() (*Creds, error) {
+func getWorkloadIdentityConfig() *Creds {
 	return &Creds{
 		Method:     "workload",
 		Parameters: nil,
-	}, nil
+	}
 }
 
 func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
@@ -69,10 +69,7 @@ func ClientFromEnv(ctx context.Context) (*vault.Client, error) {
 
 	credsPath := os.Getenv(CredsEnvVar)
 	if credsPath == "" {
-		creds, err = getWorkloadIdentityConfig()
-		if err != nil {
-			return nil, errorx.Decorate(err, "get workload identity config")
-		}
+		creds = getWorkloadIdentityConfig()
 	} else {
 		err = config.LoadConfig(ctx, credsPath, &creds)
 		if err != nil {

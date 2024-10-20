@@ -21,6 +21,7 @@ func (e MissingEnvError) Error() string {
 	return fmt.Sprintf("required environment variable \"%s\" is not defined", e.EnvVarName)
 }
 
+//nolint:ireturn // we return the same structure we get in, but this cannot be easily updated to use generics.
 func interpolate(ctx context.Context, vc *vault.Client, vi any) (any, error) {
 	var err error
 
@@ -46,6 +47,7 @@ func interpolate(ctx context.Context, vc *vault.Client, vi any) (any, error) {
 	return vi, nil
 }
 
+//nolint:ireturn // return type depends on interpolator.
 func interpolateString(ctx context.Context, vc *vault.Client, v string) (any, error) {
 	switch {
 	case strings.HasPrefix(v, "ENV->"):
@@ -55,14 +57,14 @@ func interpolateString(ctx context.Context, vc *vault.Client, v string) (any, er
 	case strings.HasPrefix(v, "VAULT->"):
 		res, err := VaultInterpolator(ctx, strings.TrimPrefix(v, "VAULT->"), vc)
 		if err != nil {
-			return nil, errorx.Decorate(err, fmt.Sprintf("interpolate vault value %s", v))
+			return nil, errorx.Decorate(err, "interpolate vault value %s", v)
 		}
 
 		return interpolate(ctx, vc, res)
 	case strings.HasPrefix(v, "FS->"):
 		res, err := loadConfigFS(strings.TrimPrefix(v, "FS->"))
 		if err != nil {
-			return nil, errorx.Decorate(err, fmt.Sprintf("interpolate fs value %s", v))
+			return nil, errorx.Decorate(err, "interpolate fs value %s", v)
 		}
 
 		return interpolate(ctx, vc, res)
@@ -71,6 +73,7 @@ func interpolateString(ctx context.Context, vc *vault.Client, v string) (any, er
 	return v, nil
 }
 
+//nolint:ireturn // return type depends on kind of value in vault.
 func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (any, error) {
 	if client == nil {
 		return nil, ErrNoVaultClient
@@ -79,7 +82,7 @@ func VaultInterpolator(ctx context.Context, inp string, client *vault.Client) (a
 	var options []vault.RequestOption
 
 	if strings.HasPrefix(inp, "/") {
-		split := strings.SplitN(strings.TrimPrefix(inp, "/"), "/", 2) //nolint:gomnd
+		split := strings.SplitN(strings.TrimPrefix(inp, "/"), "/", 2) //nolint:mnd
 		options = append(options, vault.WithMountPath(split[0]))
 		inp = split[1]
 	}

@@ -1,6 +1,6 @@
 module github.com/sovamorco/gommon
 
-go 1.21
+go 1.22
 
 require (
 	github.com/hashicorp/vault-client-go v0.4.2

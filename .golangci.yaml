@@ -1,24 +1,16 @@
-run:
-  skip-dirs:
+issues:
+  exclude-dirs:
   - temp
 
 linters:
   enable-all: true
   disable:
-  - interfacer
-  - varcheck
-  - structcheck
-  - deadcode
-  - maligned
-  - exhaustivestruct
-  - ifshort
-  - nosnakecase
-  - golint
-  - scopelint
   - tagliatelle
   - varnamelen
   - depguard
   - godox
+  - execinquery
+  - gomnd
   - goimports # conflicts with gofumpt
   - gci       # conflicts with gofumpt
   - gofumpt   # broken, just run task fmt

@@ -15,6 +15,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	ConfigPathEnv = "CONFIG_PATH"
+)
+
 var (
 	ErrNotPointer        = errors.New("dest has to be a pointer")
 	ErrUnsupportedFormat = errors.New("unsupported file format")
@@ -47,7 +51,12 @@ func LoadConfigVault(ctx context.Context, vc *vault.Client, filename string, des
 	return nil
 }
 
+//nolint:ireturn // we don't know the structure yet.
 func loadConfigFS(fspath string) (any, error) {
+	if envPath := os.Getenv(ConfigPathEnv); envPath != "" {
+		fspath = envPath
+	}
+
 	f, err := os.Open(fspath)
 	if err != nil {
 		return nil, errorx.Decorate(err, "open file")
@@ -56,7 +65,7 @@ func loadConfigFS(fspath string) (any, error) {
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			slog.Info("Error closing file: ", err)
+			slog.Info("Error closing file", "error", err)
 		}
 	}()
 
