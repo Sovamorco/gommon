@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"os"
 	"reflect"
@@ -66,6 +67,8 @@ func loadConfigFS(fspath string) (any, error) {
 
 	var tempdest map[string]any
 
+	var res any
+
 	fnameSplit := strings.Split(fspath, ".")
 	ext := fnameSplit[len(fnameSplit)-1]
 
@@ -73,9 +76,13 @@ func loadConfigFS(fspath string) (any, error) {
 	case "yaml", "yml":
 		dc := yaml.NewDecoder(f)
 		err = dc.Decode(&tempdest)
+		res = tempdest
 	case "json":
 		dc := json.NewDecoder(f)
 		err = dc.Decode(&tempdest)
+		res = tempdest
+	case "", "txt":
+		res, err = io.ReadAll(f)
 	default:
 		return nil, ErrUnsupportedFormat
 	}
@@ -84,5 +91,5 @@ func loadConfigFS(fspath string) (any, error) {
 		return nil, errorx.Decorate(err, "decode file")
 	}
 
-	return tempdest, nil
+	return res, nil
 }
