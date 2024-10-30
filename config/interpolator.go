@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -54,6 +55,18 @@ func interpolateString(ctx context.Context, v string) (any, error) {
 		res, err := loadConfigFS(strings.TrimPrefix(v, "FS->"))
 		if err != nil {
 			return nil, errorx.Decorate(err, "interpolate fs value %s", v)
+		}
+
+		return interpolate(ctx, res)
+	case strings.HasPrefix(v, "OFS->"):
+		res, err := loadConfigFS(strings.TrimPrefix(v, "OFS->"))
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				//nolint:nilnil // the return value is literally nil in this case.
+				return nil, nil
+			}
+
+			return nil, errorx.Decorate(err, "interpolate fs value: %s", v)
 		}
 
 		return interpolate(ctx, res)
