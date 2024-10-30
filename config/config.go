@@ -82,7 +82,7 @@ func loadConfigFS(fspath string) (any, error) {
 		err = dc.Decode(&tempdest)
 		res = tempdest
 	case "", "txt":
-		res, err = io.ReadAll(f)
+		res, err = readAllString(f)
 	default:
 		return nil, ErrUnsupportedFormat
 	}
@@ -92,4 +92,13 @@ func loadConfigFS(fspath string) (any, error) {
 	}
 
 	return res, nil
+}
+
+func readAllString(r io.Reader) (string, error) {
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return "", errorx.Decorate(err, "read all")
+	}
+
+	return string(b), nil
 }
