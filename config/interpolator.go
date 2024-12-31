@@ -82,11 +82,23 @@ func interpolateString(ctx context.Context, v string) (any, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			err = nil
 		}
+	default:
+		// if there are no prefixes and no suffixes - return the value.
+		if len(suffixes) == 0 {
+			return res, nil
+		}
 	}
 
 	if err != nil {
 		return nil, errorx.Decorate(err, "interpolate prefix")
 	}
+
+	return interpolateSuffixes(ctx, res, suffixes)
+}
+
+//nolint:ireturn // value depends on suffixes.
+func interpolateSuffixes(ctx context.Context, v any, suffixes []string) (any, error) {
+	var err error
 
 	for _, suffix := range suffixes {
 		si, ok := SuffixInterpolators[suffix]
@@ -94,13 +106,13 @@ func interpolateString(ctx context.Context, v string) (any, error) {
 			return nil, errorx.IllegalState.New("got non-existent suffix interpolator %s", suffix)
 		}
 
-		res, err = si(res)
+		v, err = si(v)
 		if err != nil {
 			return nil, errorx.Decorate(err, "interpolate suffix %s", suffix)
 		}
 	}
 
-	return Interpolate(ctx, res)
+	return Interpolate(ctx, v)
 }
 
 func getSuffixes(v string) (string, []string) {
