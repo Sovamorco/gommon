@@ -4,8 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
+	"regexp"
+	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sovamorco/errorx"
 )
@@ -18,21 +23,34 @@ func (e MissingEnvError) Error() string {
 	return fmt.Sprintf("required environment variable \"%s\" is not defined", e.EnvVarName)
 }
 
+type SuffixInterpolator func(v any) (any, error)
+
+// and we want to declare a regex at the start so we fail quickly if it does not render.
+//
+//nolint:gochecknoglobals // need to declare it for the sake of declaring a regex right away
+var SuffixInterpolators = map[string]SuffixInterpolator{
+	"atoi":     AtoiInterpolator,
+	"duration": DurationInterpolator,
+}
+
+var SuffixRegex = regexp.MustCompile(fmt.Sprintf(`^(.+)::(%s)$`,
+	strings.Join(slices.Collect(maps.Keys(SuffixInterpolators)), "|")))
+
 //nolint:ireturn // we return the same structure we get in, but this cannot be easily updated to use generics.
-func interpolate(ctx context.Context, vi any) (any, error) {
+func Interpolate(ctx context.Context, vi any) (any, error) {
 	var err error
 
 	switch v := vi.(type) {
 	case map[string]any:
 		for k, vv := range v {
-			v[k], err = interpolate(ctx, vv)
+			v[k], err = Interpolate(ctx, vv)
 			if err != nil {
 				return nil, errorx.Decorate(err, "interpolate map value")
 			}
 		}
 	case []any:
 		for i, vv := range v {
-			v[i], err = interpolate(ctx, vv)
+			v[i], err = Interpolate(ctx, vv)
 			if err != nil {
 				return nil, errorx.Decorate(err, "interpolate slice value")
 			}
@@ -46,33 +64,61 @@ func interpolate(ctx context.Context, vi any) (any, error) {
 
 //nolint:ireturn // return type depends on interpolator.
 func interpolateString(ctx context.Context, v string) (any, error) {
+	v, suffixes := getSuffixes(v)
+
+	var res any = v
+
+	var err error
+
 	switch {
 	case strings.HasPrefix(v, "ENV->"):
-		return EnvInterpolator(strings.TrimPrefix(v, "ENV->"))
+		res, err = EnvInterpolator(strings.TrimPrefix(v, "ENV->"))
 	case strings.HasPrefix(v, "OENV->"):
-		return OEnvInterpolator(strings.TrimPrefix(v, "OENV->")), nil
+		res, err = OEnvInterpolator(strings.TrimPrefix(v, "OENV->")), nil
 	case strings.HasPrefix(v, "FS->"):
-		res, err := loadConfigFS(strings.TrimPrefix(v, "FS->"))
-		if err != nil {
-			return nil, errorx.Decorate(err, "interpolate fs value %s", v)
-		}
-
-		return interpolate(ctx, res)
+		res, err = loadConfigFS(strings.TrimPrefix(v, "FS->"))
 	case strings.HasPrefix(v, "OFS->"):
-		res, err := loadConfigFS(strings.TrimPrefix(v, "OFS->"))
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				//nolint:nilnil // the return value is literally nil in this case.
-				return nil, nil
-			}
-
-			return nil, errorx.Decorate(err, "interpolate fs value: %s", v)
+		res, err = loadConfigFS(strings.TrimPrefix(v, "OFS->"))
+		if errors.Is(err, os.ErrNotExist) {
+			err = nil
 		}
-
-		return interpolate(ctx, res)
 	}
 
-	return v, nil
+	if err != nil {
+		return nil, errorx.Decorate(err, "interpolate prefix")
+	}
+
+	for _, suffix := range suffixes {
+		si, ok := SuffixInterpolators[suffix]
+		if !ok {
+			return nil, errorx.IllegalState.New("got non-existent suffix interpolator %s", suffix)
+		}
+
+		res, err = si(res)
+		if err != nil {
+			return nil, errorx.Decorate(err, "interpolate suffix %s", suffix)
+		}
+	}
+
+	return Interpolate(ctx, res)
+}
+
+func getSuffixes(v string) (string, []string) {
+	res := make([]string, 0)
+
+	for {
+		submatch := SuffixRegex.FindStringSubmatch(v)
+		if submatch == nil {
+			break
+		}
+
+		v = submatch[1]
+		// append in reverse order because the suffixes are stripped from right to left,
+		// and are supposed to be executed from left to right.
+		res = append([]string{submatch[2]}, res...)
+	}
+
+	return v, res
 }
 
 func EnvInterpolator(inp string) (string, error) {
@@ -86,4 +132,38 @@ func EnvInterpolator(inp string) (string, error) {
 
 func OEnvInterpolator(inp string) string {
 	return os.Getenv(inp)
+}
+
+//nolint:ireturn // required by SuffixInterpolator type.
+func AtoiInterpolator(inp any) (any, error) {
+	switch inpt := inp.(type) {
+	case int:
+		return inpt, nil
+	case string:
+		res, err := strconv.Atoi(inpt)
+		if err != nil {
+			return nil, errorx.Decorate(err, "parse int")
+		}
+
+		return res, nil
+	}
+
+	return nil, errorx.IllegalArgument.New("value for atoi intepolator has to be a string or an int")
+}
+
+//nolint:ireturn // required by SuffixInterpolator type.
+func DurationInterpolator(inp any) (any, error) {
+	switch inpt := inp.(type) {
+	case int:
+		return time.Duration(inpt), nil
+	case string:
+		res, err := time.ParseDuration(inpt)
+		if err != nil {
+			return nil, errorx.Decorate(err, "parse duration")
+		}
+
+		return res, nil
+	}
+
+	return nil, errorx.IllegalArgument.New("value for duration intepolator has to be a string or an int")
 }

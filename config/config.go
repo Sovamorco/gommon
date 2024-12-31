@@ -19,10 +19,7 @@ const (
 	ConfigPathEnv = "CONFIG_PATH"
 )
 
-var (
-	ErrNotPointer        = errors.New("dest has to be a pointer")
-	ErrUnsupportedFormat = errors.New("unsupported file format")
-)
+var ErrNotPointer = errors.New("dest has to be a pointer")
 
 func LoadConfig(ctx context.Context, filename string, dest any) error {
 	if reflect.TypeOf(dest).Kind() != reflect.Pointer {
@@ -34,7 +31,7 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 		return errorx.Decorate(err, "load uninterpolated config")
 	}
 
-	interpolated, err := interpolate(ctx, unint)
+	interpolated, err := Interpolate(ctx, unint)
 	if err != nil {
 		return errorx.Decorate(err, "interpolate config")
 	}
@@ -55,7 +52,7 @@ func loadConfigFS(fspath string) (any, error) {
 
 	f, err := os.Open(fspath)
 	if err != nil {
-		return nil, errorx.Decorate(err, "open file")
+		return nil, errorx.Decorate(err, "open file %s", fspath)
 	}
 
 	defer func() {
@@ -84,11 +81,11 @@ func loadConfigFS(fspath string) (any, error) {
 	case "", "txt":
 		res, err = readAllString(f)
 	default:
-		return nil, ErrUnsupportedFormat
+		return nil, errorx.IllegalArgument.New("unsupported file format \"%s\" for file %s", ext, fspath)
 	}
 
 	if err != nil {
-		return nil, errorx.Decorate(err, "decode file")
+		return nil, errorx.Decorate(err, "decode file %s", fspath)
 	}
 
 	return res, nil

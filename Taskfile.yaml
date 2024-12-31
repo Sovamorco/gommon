@@ -48,3 +48,12 @@ tasks:
     - git tag {{.CLI_ARGS}}
     - git push origin {{.CLI_ARGS}}
     - go list -m github.com/sovamorco/gommon@{{.CLI_ARGS}}
+
+  test:
+    desc:    This task runs tests
+    summary: |
+      This task runs tests
+      Dependencies:
+      - "go" has to be in PATH
+    cmds:
+    - go test ./config
