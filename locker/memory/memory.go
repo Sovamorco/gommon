@@ -8,18 +8,18 @@ import (
 	"github.com/sovamorco/gommon/locker"
 )
 
-type Mock struct {
+type Memory struct {
 	locks sync.Map `exhaustruct:"optional"`
 }
 
-func New() *Mock {
-	return &Mock{}
+func New() *Memory {
+	return &Memory{}
 }
 
 // required by interface.
 //
 //nolint:ireturn
-func (m *Mock) Lock(_ context.Context, name string) (locker.Lock, error) {
+func (m *Memory) Lock(_ context.Context, name string) (locker.Lock, error) {
 	l := &Lock{
 		name:   name,
 		parent: m,
@@ -35,7 +35,7 @@ func (m *Mock) Lock(_ context.Context, name string) (locker.Lock, error) {
 
 type Lock struct {
 	name   string
-	parent *Mock
+	parent *Memory
 }
 
 func (l *Lock) Unlock(_ context.Context) error {
