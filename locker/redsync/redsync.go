@@ -13,13 +13,13 @@ const (
 	ExpiryTime = 15 * time.Second
 )
 
-type Redlock struct {
+type Redsync struct {
 	rs     *redsync.Redsync
 	prefix string
 }
 
-func New(rs *redsync.Redsync, prefix string) *Redlock {
-	return &Redlock{
+func New(rs *redsync.Redsync, prefix string) *Redsync {
+	return &Redsync{
 		rs:     rs,
 		prefix: prefix,
 	}
@@ -28,7 +28,7 @@ func New(rs *redsync.Redsync, prefix string) *Redlock {
 // interface return required by interface.
 //
 //nolint:ireturn
-func (rl *Redlock) Lock(ctx context.Context, name string) (locker.Lock, error) {
+func (rl *Redsync) Lock(ctx context.Context, name string) (locker.Lock, error) {
 	mutex := rl.rs.NewMutex(rl.prefix+":"+name, redsync.WithExpiry(ExpiryTime))
 
 	err := mutex.TryLockContext(ctx)
