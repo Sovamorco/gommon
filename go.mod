@@ -8,7 +8,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rs/zerolog v1.34.0
-	github.com/sovamorco/errorx v0.2.0
+	github.com/sovamorco/errorx v0.3.0
 	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
 )
