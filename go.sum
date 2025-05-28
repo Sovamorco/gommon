@@ -52,6 +52,8 @@ github.com/sovamorco/errorx v0.2.0 h1:EKUmuI/VDdeVJYVDqepbmjyGvfTHprzCLq0fBrl5yv
 github.com/sovamorco/errorx v0.2.0/go.mod h1:Po3MVee3CjcDUncxq7oggPcxUDZozwL6/BpataJ+5bU=
 github.com/sovamorco/errorx v0.3.0 h1:YnpbqBmT/9TpTHZkoT4Ro9NR7BFOt9u83LnvG84xVpU=
 github.com/sovamorco/errorx v0.3.0/go.mod h1:Po3MVee3CjcDUncxq7oggPcxUDZozwL6/BpataJ+5bU=
+github.com/sovamorco/errorx v0.3.1 h1:rYvQUZrUrHWv32CJyKRkbH6TYdyPxeiulMyjVvm1Tiw=
+github.com/sovamorco/errorx v0.3.1/go.mod h1:Po3MVee3CjcDUncxq7oggPcxUDZozwL6/BpataJ+5bU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
