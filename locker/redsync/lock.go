@@ -23,7 +23,7 @@ func (l *Lock) Unlock(ctx context.Context) error {
 
 	_, err := l.mutex.UnlockContext(ctx)
 	if err != nil {
-		return errorx.Decorate(err, "unlock mutex")
+		return errorx.Wrap(err, "unlock mutex")
 	}
 
 	return nil

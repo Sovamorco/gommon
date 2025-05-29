@@ -45,14 +45,14 @@ func Interpolate(ctx context.Context, vi any) (any, error) {
 		for k, vv := range v {
 			v[k], err = Interpolate(ctx, vv)
 			if err != nil {
-				return nil, errorx.Decorate(err, "interpolate map value")
+				return nil, errorx.Wrap(err, "interpolate map value")
 			}
 		}
 	case []any:
 		for i, vv := range v {
 			v[i], err = Interpolate(ctx, vv)
 			if err != nil {
-				return nil, errorx.Decorate(err, "interpolate slice value")
+				return nil, errorx.Wrap(err, "interpolate slice value")
 			}
 		}
 	case string:
@@ -90,7 +90,7 @@ func interpolateString(ctx context.Context, v string) (any, error) {
 	}
 
 	if err != nil {
-		return nil, errorx.Decorate(err, "interpolate prefix")
+		return nil, errorx.Wrap(err, "interpolate prefix")
 	}
 
 	return interpolateSuffixes(ctx, res, suffixes)
@@ -108,7 +108,7 @@ func interpolateSuffixes(ctx context.Context, v any, suffixes []string) (any, er
 
 		v, err = si(v)
 		if err != nil {
-			return nil, errorx.Decorate(err, "interpolate suffix %s", suffix)
+			return nil, errorx.Wrap(err, "interpolate suffix %s", suffix)
 		}
 	}
 
@@ -154,7 +154,7 @@ func AtoiInterpolator(inp any) (any, error) {
 	case string:
 		res, err := strconv.Atoi(inpt)
 		if err != nil {
-			return nil, errorx.Decorate(err, "parse int")
+			return nil, errorx.Wrap(err, "parse int")
 		}
 
 		return res, nil
@@ -171,7 +171,7 @@ func DurationInterpolator(inp any) (any, error) {
 	case string:
 		res, err := time.ParseDuration(inpt)
 		if err != nil {
-			return nil, errorx.Decorate(err, "parse duration")
+			return nil, errorx.Wrap(err, "parse duration")
 		}
 
 		return res, nil

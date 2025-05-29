@@ -33,7 +33,7 @@ func (rl *Redsync) Lock(ctx context.Context, name string) (locker.Lock, error) {
 
 	err := mutex.TryLockContext(ctx)
 	if err != nil {
-		return nil, errorx.Decorate(err, "lock mutex")
+		return nil, errorx.Wrap(err, "lock mutex")
 	}
 
 	l := &Lock{

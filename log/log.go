@@ -22,7 +22,7 @@ func (z *zerologWriter) WriteLevel(level zerolog.Level, p []byte) (int, error) {
 
 	n, err := writer.Write(p)
 	if err != nil {
-		return 0, errorx.Decorate(err, "write")
+		return 0, errorx.Wrap(err, "write")
 	}
 
 	return n, nil

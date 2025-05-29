@@ -28,17 +28,17 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 
 	unint, err := loadConfigFS(filename)
 	if err != nil {
-		return errorx.Decorate(err, "load uninterpolated config")
+		return errorx.Wrap(err, "load uninterpolated config")
 	}
 
 	interpolated, err := Interpolate(ctx, unint)
 	if err != nil {
-		return errorx.Decorate(err, "interpolate config")
+		return errorx.Wrap(err, "interpolate config")
 	}
 
 	err = mapstructure.Decode(interpolated, dest)
 	if err != nil {
-		return errorx.Decorate(err, "decode interpolated map")
+		return errorx.Wrap(err, "decode interpolated map")
 	}
 
 	return nil
@@ -52,7 +52,7 @@ func loadConfigFS(fspath string) (any, error) {
 
 	f, err := os.Open(fspath)
 	if err != nil {
-		return nil, errorx.Decorate(err, "open file %s", fspath)
+		return nil, errorx.Wrap(err, "open file %s", fspath)
 	}
 
 	defer func() {
@@ -85,7 +85,7 @@ func loadConfigFS(fspath string) (any, error) {
 	}
 
 	if err != nil {
-		return nil, errorx.Decorate(err, "decode file %s", fspath)
+		return nil, errorx.Wrap(err, "decode file %s", fspath)
 	}
 
 	return res, nil
@@ -94,7 +94,7 @@ func loadConfigFS(fspath string) (any, error) {
 func readAllString(r io.Reader) (string, error) {
 	b, err := io.ReadAll(r)
 	if err != nil {
-		return "", errorx.Decorate(err, "read all")
+		return "", errorx.Wrap(err, "read all")
 	}
 
 	return string(b), nil
