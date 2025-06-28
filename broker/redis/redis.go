@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/redis/go-redis/v9"
@@ -25,12 +26,21 @@ func New(cl *redis.Client, prefix string) *Broker {
 }
 
 func (b *Broker) Subscribe(ctx context.Context, mh broker.MessageHandler, channels ...string) {
+	// add prefix for non-system channels.
+	for i, c := range channels {
+		if !strings.HasPrefix(c, "__") {
+			channels[i] = b.prefix + ":" + c
+		}
+	}
+
 	ps := b.cl.Subscribe(ctx, channels...)
 
 	go b.subscriptionHandler(ctx, mh, ps.Channel())
 }
 
 func (b *Broker) Publish(ctx context.Context, channel, message string) error {
+	channel = b.prefix + ":" + channel
+
 	err := b.cl.Publish(ctx, channel, []byte(message)).Err()
 
 	return errorx.Wrap(err, "publish")
