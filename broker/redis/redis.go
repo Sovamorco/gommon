@@ -64,19 +64,19 @@ func (b *Broker) subscriptionHandler(ctx context.Context, mh broker.MessageHandl
 
 	var wg sync.WaitGroup
 
-	var msg *redis.Message
-
-	var ok bool
-
 loop:
 	for {
+		var msg *redis.Message
+
 		select {
 		case <-ctx.Done():
 			break loop
-		case msg, ok = <-ch:
+		case rmsg, ok := <-ch:
 			if !ok {
 				break loop
 			}
+
+			msg = rmsg
 		}
 
 		logger := logger.With().Str("channel", msg.Channel).Logger()
