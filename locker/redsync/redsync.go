@@ -9,6 +9,8 @@ import (
 	"github.com/sovamorco/gommon/locker"
 )
 
+var _ = (locker.Locker)((*Redsync)(nil))
+
 const (
 	ExpiryTime = 15 * time.Second
 )

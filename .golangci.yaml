@@ -1,30 +1,43 @@
-issues:
-  exclude-dirs:
-  - temp
-
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
-  - tagliatelle
-  - varnamelen
-  - depguard
-  - godox
-  - tenv
-  - goimports # conflicts with gofumpt
-  - gci       # conflicts with gofumpt
-  - gofumpt   # broken, just run task fmt
-
-linters-settings:
-  ireturn:
-    allow:
-    - error
-    - stdlib
-    - generic
-
-  wrapcheck:
-    ignoreSigs:
-    - errors.New(
-    - errorx.Wrap(
-    - status.Error(
-    - status.Errorf(
-    - fmt.Errorf(
+    - depguard
+    - godox
+    - tagliatelle
+    - varnamelen
+  settings:
+    ireturn:
+      allow:
+        - error
+        - stdlib
+        - generic
+    wrapcheck:
+      ignore-sigs:
+        - errors.New(
+        - errorx.Wrap(
+        - status.Error(
+        - status.Errorf(
+        - fmt.Errorf(
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - temp
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - temp
+      - third_party$
+      - builtin$
+      - examples$

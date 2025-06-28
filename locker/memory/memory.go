@@ -8,6 +8,8 @@ import (
 	"github.com/sovamorco/gommon/locker"
 )
 
+var _ = (locker.Locker)((*Memory)(nil))
+
 type Memory struct {
 	locks sync.Map `exhaustruct:"optional"`
 }
