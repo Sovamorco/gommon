@@ -2,9 +2,11 @@ package mock
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 
 	"github.com/rs/zerolog"
+	"github.com/sovamorco/errorx"
 	"github.com/sovamorco/gommon/broker"
 )
 
@@ -36,11 +38,16 @@ func (b *Broker) Subscribe(ctx context.Context, mh broker.MessageHandler, channe
 	}
 }
 
-func (b *Broker) Publish(ctx context.Context, channel, payload string) error {
+func (b *Broker) Publish(ctx context.Context, channel string, payload any) error {
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		return errorx.Wrap(err, "marshal payload")
+	}
+
 	logger := zerolog.Ctx(ctx)
 
 	logger.Debug().
-		Str("channel", channel).Str("payload", payload).
+		Str("channel", channel).Str("payload", string(bs)).
 		Msg("Mock broker publish")
 
 	b.mu.RLock()
@@ -48,7 +55,7 @@ func (b *Broker) Publish(ctx context.Context, channel, payload string) error {
 
 	for _, mh := range b.handlers[channel] {
 		go func() {
-			err := mh(ctx, channel, payload)
+			err := mh(ctx, channel, bs)
 			if err != nil {
 				logger.Error().Err(err).Msg("Mock broker failed to process message")
 			}

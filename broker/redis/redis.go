@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"sync"
 
@@ -38,10 +39,15 @@ func (b *Broker) Subscribe(ctx context.Context, mh broker.MessageHandler, channe
 	go b.subscriptionHandler(ctx, mh, ps.Channel())
 }
 
-func (b *Broker) Publish(ctx context.Context, channel, message string) error {
+func (b *Broker) Publish(ctx context.Context, channel string, payload any) error {
 	channel = b.prefix + ":" + channel
 
-	err := b.cl.Publish(ctx, channel, []byte(message)).Err()
+	bs, err := json.Marshal(payload)
+	if err != nil {
+		return errorx.Wrap(err, "marshal payload")
+	}
+
+	err = b.cl.Publish(ctx, channel, bs).Err()
 
 	return errorx.Wrap(err, "publish")
 }
@@ -88,7 +94,7 @@ loop:
 
 			logger.Debug().Str("payload", msg.Payload).Msg("Received message")
 
-			err := mh(ctx, msg.Channel, msg.Payload)
+			err := mh(ctx, msg.Channel, []byte(msg.Payload))
 			if err != nil {
 				logger.Error().Err(err).Msg("Error processing message")
 			}
