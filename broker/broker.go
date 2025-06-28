@@ -21,7 +21,7 @@ func StructToMessageHandler[T any](sh StructHandler[T]) MessageHandler {
 	return func(ctx context.Context, channel string, payload []byte) error {
 		var s T
 
-		err := json.Unmarshal(payload, s)
+		err := json.Unmarshal(payload, &s)
 		if err != nil {
 			return errorx.Wrap(err, "unmarshal payload")
 		}
