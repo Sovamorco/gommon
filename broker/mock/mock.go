@@ -12,7 +12,7 @@ import (
 
 //nolint:gochecknoinits // driver pattern.
 func init() {
-	broker.Register("redis", newMock)
+	broker.Register("mock", newMock)
 }
 
 type Broker struct {
