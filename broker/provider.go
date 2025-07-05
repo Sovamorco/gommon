@@ -6,12 +6,9 @@ import (
 	"sync"
 )
 
-type UnknownProviderError struct {
-	Provider string
-}
-
-func (e UnknownProviderError) Error() string {
-	return fmt.Sprintf("broker: unknown provider %q", e.Provider)
+type Config struct {
+	Provider string `mapstructure:"provider"`
+	URL      string `mapstructure:"url"`
 }
 
 type builder func(ctx context.Context, connst string) (Broker, error)
@@ -21,6 +18,14 @@ var (
 	providersMu sync.RWMutex
 	providers   = make(map[string]builder)
 )
+
+type UnknownProviderError struct {
+	Provider string
+}
+
+func (e UnknownProviderError) Error() string {
+	return fmt.Sprintf("broker: unknown provider %q", e.Provider)
+}
 
 func Register(p string, bf builder) {
 	providersMu.Lock()
@@ -34,18 +39,18 @@ func Register(p string, bf builder) {
 }
 
 //nolint:ireturn // depends on provider.
-func New(ctx context.Context, provider, connst string) (Broker, error) {
+func New(ctx context.Context, cfg Config) (Broker, error) {
 	providersMu.RLock()
 
-	pf, ok := providers[provider]
+	pf, ok := providers[cfg.Provider]
 
 	providersMu.RUnlock()
 
 	if !ok {
 		return nil, UnknownProviderError{
-			Provider: provider,
+			Provider: cfg.Provider,
 		}
 	}
 
-	return pf(ctx, connst)
+	return pf(ctx, cfg.URL)
 }
