@@ -10,7 +10,7 @@ import (
 
 //nolint:gochecknoinits // driver pattern.
 func init() {
-	locker.Register("redis", newMock)
+	locker.Register("mock", newMock)
 }
 
 type Memory struct {
