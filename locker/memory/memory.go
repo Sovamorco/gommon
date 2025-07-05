@@ -8,14 +8,18 @@ import (
 	"github.com/sovamorco/gommon/locker"
 )
 
-var _ = (locker.Locker)((*Memory)(nil))
+//nolint:gochecknoinits // driver pattern.
+func init() {
+	locker.Register("redis", newMock)
+}
 
 type Memory struct {
 	locks sync.Map `exhaustruct:"optional"`
 }
 
-func New() *Memory {
-	return &Memory{}
+//nolint:ireturn // required by locker.Register.
+func newMock(_ context.Context, _ string) (locker.Locker, error) {
+	return &Memory{}, nil
 }
 
 // required by interface.

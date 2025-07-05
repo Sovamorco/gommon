@@ -11,6 +11,7 @@ import (
 
 type zerologWriter struct {
 	io.Writer
+
 	errWriter io.Writer
 }
 

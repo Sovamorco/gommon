@@ -10,17 +10,21 @@ import (
 	"github.com/sovamorco/gommon/broker"
 )
 
-var _ = (broker.Broker)((*Broker)(nil))
+//nolint:gochecknoinits // driver pattern.
+func init() {
+	broker.Register("redis", newMock)
+}
 
 type Broker struct {
 	handlers map[string][]broker.MessageHandler
 	mu       sync.RWMutex `exhaustruct:"optional"`
 }
 
-func New() *Broker {
+//nolint:ireturn // required by broker.Register.
+func newMock(_ context.Context, _ string) (broker.Broker, error) {
 	return &Broker{
 		handlers: make(map[string][]broker.MessageHandler),
-	}
+	}, nil
 }
 
 func (b *Broker) Subscribe(ctx context.Context, mh broker.MessageHandler, channels ...string) {

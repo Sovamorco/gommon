@@ -2,42 +2,43 @@ version: "2"
 linters:
   default: all
   disable:
-    - depguard
-    - godox
-    - tagliatelle
-    - varnamelen
+  - depguard
+  - godox
+  - tagliatelle
+  - varnamelen
+  - wsl
   settings:
     ireturn:
       allow:
-        - error
-        - stdlib
-        - generic
+      - error
+      - stdlib
+      - generic
     wrapcheck:
       ignore-sigs:
-        - errors.New(
-        - errorx.Wrap(
-        - status.Error(
-        - status.Errorf(
-        - fmt.Errorf(
+      - errors.New(
+      - errorx.Wrap(
+      - status.Error(
+      - status.Errorf(
+      - fmt.Errorf(
   exclusions:
     generated: lax
     presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
+    - comments
+    - common-false-positives
+    - legacy
+    - std-error-handling
     paths:
-      - temp
-      - third_party$
-      - builtin$
-      - examples$
+    - temp
+    - third_party$
+    - builtin$
+    - examples$
 formatters:
   enable:
-    - gofmt
+  - gofmt
   exclusions:
     generated: lax
     paths:
-      - temp
-      - third_party$
-      - builtin$
-      - examples$
+    - temp
+    - third_party$
+    - builtin$
+    - examples$

@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -10,20 +11,35 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/sovamorco/errorx"
 	"github.com/sovamorco/gommon/broker"
+	"github.com/sovamorco/gommon/gredis"
 )
 
-var _ = (broker.Broker)((*Broker)(nil))
+//nolint:gochecknoinits // driver pattern.
+func init() {
+	broker.Register("redis", newRedis)
+}
 
 type Broker struct {
 	cl     *redis.Client
 	prefix string
 }
 
-func New(cl *redis.Client, prefix string) *Broker {
+//nolint:ireturn // required by broker.Register.
+func newRedis(ctx context.Context, connst string) (broker.Broker, error) {
+	u, err := url.Parse(connst)
+	if err != nil {
+		return nil, errorx.Wrap(err, "parse connection url")
+	}
+
+	cl, err := gredis.New(ctx, connst)
+	if err != nil {
+		return nil, errorx.Wrap(err, "create redis client")
+	}
+
 	return &Broker{
 		cl:     cl,
-		prefix: prefix,
-	}
+		prefix: u.Fragment,
+	}, nil
 }
 
 func (b *Broker) Subscribe(ctx context.Context, mh broker.MessageHandler, channels ...string) {
