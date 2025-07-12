@@ -54,7 +54,7 @@ func InitFileLogger(stdoutFileName, stderrFileName string) (zerolog.Logger, erro
 	//nolint:reassign // that's the way of zerolog.
 	zerolog.ErrorStackMarshaler = marshalErrorxStack
 
-	stdout, err := os.OpenFile(stdoutFileName, os.O_CREATE|os.O_APPEND, defaultFilePerm)
+	stdout, err := os.OpenFile(stdoutFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, defaultFilePerm)
 	if err != nil {
 		return zerolog.Logger{}, errorx.Wrap(err, "open stdout file")
 	}
