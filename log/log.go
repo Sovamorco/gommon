@@ -62,7 +62,7 @@ func InitFileLogger(stdoutFileName, stderrFileName string) (zerolog.Logger, erro
 	stderr := stdout
 
 	if stderrFileName != stdoutFileName {
-		stderr, err = os.OpenFile(stderrFileName, os.O_CREATE|os.O_APPEND, defaultFilePerm)
+		stderr, err = os.OpenFile(stderrFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, defaultFilePerm)
 		if err != nil {
 			return zerolog.Logger{}, errorx.Wrap(err, "open stderr file")
 		}
