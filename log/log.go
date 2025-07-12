@@ -9,6 +9,10 @@ import (
 	"github.com/sovamorco/errorx"
 )
 
+const (
+	defaultFilePerm = 0o600
+)
+
 type zerologWriter struct {
 	io.Writer
 
@@ -43,6 +47,37 @@ func InitLogger() zerolog.Logger {
 	log.Logger = logger
 
 	return logger
+}
+
+// if logs should be together - use same file name for both stdout and stderr.
+func InitFileLogger(stdoutFileName, stderrFileName string) (zerolog.Logger, error) {
+	//nolint:reassign // that's the way of zerolog.
+	zerolog.ErrorStackMarshaler = marshalErrorxStack
+
+	stdout, err := os.OpenFile(stdoutFileName, os.O_CREATE|os.O_APPEND, defaultFilePerm)
+	if err != nil {
+		return zerolog.Logger{}, errorx.Wrap(err, "open stdout file")
+	}
+
+	stderr := stdout
+
+	if stderrFileName != stdoutFileName {
+		stderr, err = os.OpenFile(stderrFileName, os.O_CREATE|os.O_APPEND, defaultFilePerm)
+		if err != nil {
+			return zerolog.Logger{}, errorx.Wrap(err, "open stderr file")
+		}
+	}
+
+	writer := zerologWriter{
+		Writer:    stdout,
+		errWriter: stderr,
+	}
+
+	logger := zerolog.New(writer).With().Caller().Timestamp().Stack().Logger().Level(zerolog.DebugLevel)
+
+	log.Logger = logger
+
+	return logger, nil
 }
 
 func InitDevLogger() zerolog.Logger {
