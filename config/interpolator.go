@@ -76,9 +76,9 @@ func interpolateString(ctx context.Context, v string) (any, error) {
 	case strings.HasPrefix(v, "OENV->"):
 		res, err = OEnvInterpolator(strings.TrimPrefix(v, "OENV->")), nil
 	case strings.HasPrefix(v, "FS->"):
-		res, err = loadConfigFS(strings.TrimPrefix(v, "FS->"))
+		res, err = loadConfigFS(ctx, strings.TrimPrefix(v, "FS->"))
 	case strings.HasPrefix(v, "OFS->"):
-		res, err = loadConfigFS(strings.TrimPrefix(v, "OFS->"))
+		res, err = loadConfigFS(ctx, strings.TrimPrefix(v, "OFS->"))
 		if errors.Is(err, os.ErrNotExist) {
 			err = nil
 		}

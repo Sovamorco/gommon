@@ -26,7 +26,7 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 		return ErrNotPointer
 	}
 
-	unint, err := loadConfigFS(filename)
+	unint, err := loadConfigFS(ctx, filename)
 	if err != nil {
 		return errorx.Wrap(err, "load uninterpolated config")
 	}
@@ -45,7 +45,7 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 }
 
 //nolint:ireturn // we don't know the structure yet.
-func loadConfigFS(fspath string) (any, error) {
+func loadConfigFS(ctx context.Context, fspath string) (any, error) {
 	if envPath := os.Getenv(ConfigPathEnv); envPath != "" {
 		fspath = envPath
 	}
@@ -58,7 +58,7 @@ func loadConfigFS(fspath string) (any, error) {
 	defer func() {
 		err = f.Close()
 		if err != nil {
-			slog.Info("Error closing file", "error", err)
+			slog.InfoContext(ctx, "Error closing file", "error", err)
 		}
 	}()
 

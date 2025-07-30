@@ -3,6 +3,7 @@ package log
 import (
 	"io"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -53,6 +54,7 @@ func InitLogger() zerolog.Logger {
 func InitFileLogger(stdoutFileName, stderrFileName string) (zerolog.Logger, error) {
 	//nolint:reassign // that's the way of zerolog.
 	zerolog.ErrorStackMarshaler = marshalErrorxStack
+	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	stdout, err := os.OpenFile(stdoutFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, defaultFilePerm)
 	if err != nil {
