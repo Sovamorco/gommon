@@ -37,6 +37,7 @@ func (z *zerologWriter) WriteLevel(level zerolog.Level, p []byte) (int, error) {
 func InitLogger() zerolog.Logger {
 	//nolint:reassign // that's the way of zerolog.
 	zerolog.ErrorStackMarshaler = marshalErrorxStack
+	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	writer := zerologWriter{
 		Writer:    os.Stdout,
