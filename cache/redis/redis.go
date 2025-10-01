@@ -12,10 +12,6 @@ import (
 	"github.com/sovamorco/gommon/gredis"
 )
 
-const (
-	defaultDuration = 60 * time.Second
-)
-
 //nolint:gochecknoinits // driver pattern.
 func init() {
 	cache.Register("redis", newRedis)
@@ -46,8 +42,8 @@ func newRedis(ctx context.Context, connurl string) (cache.Cache, error) {
 	}, errorx.Wrap(err, "send ping")
 }
 
-func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
-	err := c.c.Set(ctx, c.prefix+":"+key, value, defaultDuration).Err()
+func (c *Cache) Set(ctx context.Context, key string, value []byte, lifetime time.Duration) error {
+	err := c.c.Set(ctx, c.prefix+":"+key, value, lifetime).Err()
 
 	return errorx.Wrap(err, "set value")
 }
