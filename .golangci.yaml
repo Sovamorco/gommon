@@ -20,6 +20,10 @@ linters:
       - status.Error(
       - status.Errorf(
       - fmt.Errorf(
+    godoclint:
+      disable:
+      - start-with-name
+      - pkg-doc
   exclusions:
     generated: lax
     presets:

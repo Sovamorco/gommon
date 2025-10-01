@@ -12,14 +12,14 @@ import (
 	"github.com/sovamorco/gommon/locker"
 )
 
+const (
+	ExpiryTime = 15 * time.Second
+)
+
 //nolint:gochecknoinits // driver pattern.
 func init() {
 	locker.Register("redis", newRedsync)
 }
-
-const (
-	ExpiryTime = 15 * time.Second
-)
 
 type Redsync struct {
 	rs     *redsync.Redsync
