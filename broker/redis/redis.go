@@ -63,6 +63,9 @@ func (b *Broker) Publish(ctx context.Context, channel string, payload any) error
 		return errorx.Wrap(err, "marshal payload")
 	}
 
+	zerolog.Ctx(ctx).Debug().Str("payload", string(bs)).Str("channel", channel).
+		Msg("Publishing message")
+
 	err = b.cl.Publish(ctx, channel, bs).Err()
 
 	return errorx.Wrap(err, "publish")
