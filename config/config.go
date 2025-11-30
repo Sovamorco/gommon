@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -10,7 +11,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
+
 	"github.com/sovamorco/errorx"
 	"gopkg.in/yaml.v3"
 )
@@ -36,7 +38,15 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 		return errorx.Wrap(err, "interpolate config")
 	}
 
-	err = mapstructure.Decode(interpolated, dest)
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		DecodeHook: decodeBase64Strings,
+		Result:     dest,
+	})
+	if err != nil {
+		return errorx.Wrap(err, "create decoder")
+	}
+
+	err = decoder.Decode(interpolated)
 	if err != nil {
 		return errorx.Wrap(err, "decode interpolated map")
 	}
@@ -98,4 +108,14 @@ func readAllString(r io.Reader) (string, error) {
 	}
 
 	return string(b), nil
+}
+
+func decodeBase64Strings(s reflect.Type, d reflect.Type, data any) (any, error) {
+	if s.Kind() != reflect.String || d != reflect.SliceOf(reflect.TypeOf(byte(0))) {
+		return data, nil
+	}
+
+	res, err := base64.StdEncoding.DecodeString(data.(string))
+
+	return res, errorx.Wrap(err, "decode base64 value")
 }
