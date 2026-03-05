@@ -27,7 +27,7 @@ func (f *fakeFs) Open(name string) (fs.File, error) {
 
 	return &objectWrapper{
 		ReadSeeker: bytes.NewReader(obj.data),
-		name:       obj.filename,
+		name:       name,
 		size:       len(obj.data),
 		modTime:    time.Now(),
 	}, nil

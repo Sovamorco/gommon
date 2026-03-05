@@ -2,13 +2,11 @@ package minio
 
 import (
 	"context"
-	"encoding/base64"
 	"io"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sovamorco/errorx"
@@ -65,17 +63,11 @@ func newMinio(_ context.Context, connst string) (storage.Storage, error) {
 
 func (s *Storage) Upload(ctx context.Context, filename string,
 	size int64, r io.Reader,
-) (string, error) {
-	fileID := uuid.New().String()
-
+) error {
 	//nolint:exhaustruct
-	_, err := s.client.PutObject(ctx, s.bucketName, fileID, r, size, minio.PutObjectOptions{
-		UserMetadata: map[string]string{
-			"Filenamebase64": base64.StdEncoding.EncodeToString([]byte(filename)),
-		},
-	})
+	_, err := s.client.PutObject(ctx, s.bucketName, filename, r, size, minio.PutObjectOptions{})
 
-	return fileID, errorx.Wrap(err, "put object")
+	return errorx.Wrap(err, "put object")
 }
 
 func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, error) {
@@ -85,24 +77,8 @@ func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, err
 		return nil, errorx.Wrap(err, "stat object")
 	}
 
-	filename, ok := info.UserMetadata["Filename"]
-	if !ok {
-		filenameb64, ok := info.UserMetadata["Filenamebase64"]
-		if !ok {
-			return nil, errorx.ExternalError.New("missing filename metadata")
-		}
-
-		decoded, err := base64.StdEncoding.DecodeString(filenameb64)
-		if err != nil {
-			return nil, errorx.Wrap(err, "decode filename")
-		}
-
-		filename = string(decoded)
-	}
-
 	return &storage.Metadata{
-		Filename: filename,
-		Size:     info.Size,
+		Size: info.Size,
 	}, nil
 }
 

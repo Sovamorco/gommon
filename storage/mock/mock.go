@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/sovamorco/errorx"
 	"github.com/sovamorco/gommon/storage"
@@ -21,8 +20,7 @@ func init() {
 }
 
 type object struct {
-	data     []byte
-	filename string
+	data []byte
 }
 
 type Storage struct {
@@ -60,27 +58,24 @@ func newMock(ctx context.Context, _ string) (storage.Storage, error) {
 	return s, nil
 }
 
-func (s *Storage) Upload(ctx context.Context, filename string, _ int64, r io.Reader) (string, error) {
+func (s *Storage) Upload(ctx context.Context, filename string, _ int64, r io.Reader) error {
 	logger := zerolog.Ctx(ctx)
 
 	logger.Debug().Str("filename", filename).Msg("Uploading file")
 
 	content, err := io.ReadAll(r)
 	if err != nil {
-		return "", errorx.Wrap(err, "read object")
+		return errorx.Wrap(err, "read object")
 	}
 
 	logger.Debug().Str("filename", filename).
 		Int("size", len(content)).Msg("Uploaded file")
 
-	objID := uuid.New().String()
-
-	s.objs[objID] = object{
-		data:     content,
-		filename: filename,
+	s.objs[filename] = object{
+		data: content,
 	}
 
-	return objID, nil
+	return nil
 }
 
 func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, error) {
@@ -92,8 +87,7 @@ func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, err
 	zerolog.Ctx(ctx).Debug().Str("path", path).Msg("Statted file")
 
 	return &storage.Metadata{
-		Filename: o.filename,
-		Size:     int64(len(o.data)),
+		Size: int64(len(o.data)),
 	}, nil
 }
 
@@ -108,8 +102,7 @@ func (s *Storage) Download(ctx context.Context, path string) (*storage.Object, e
 	return &storage.Object{
 		ReadCloser: io.NopCloser(bytes.NewBuffer(o.data)),
 		Metadata: &storage.Metadata{
-			Filename: o.filename,
-			Size:     int64(len(o.data)),
+			Size: int64(len(o.data)),
 		},
 	}, nil
 }
