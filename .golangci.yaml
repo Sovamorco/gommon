@@ -24,6 +24,9 @@ linters:
       disable:
       - start-with-name
       - pkg-doc
+    gosec:
+      excludes:
+      - G117
   exclusions:
     generated: lax
     presets:
@@ -38,11 +41,4 @@ linters:
     - examples$
 formatters:
   enable:
-  - gofmt
-  exclusions:
-    generated: lax
-    paths:
-    - temp
-    - third_party$
-    - builtin$
-    - examples$
+  - gofumpt

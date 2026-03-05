@@ -19,13 +19,13 @@ tasks:
     - go mod tidy
 
   fmt:
-    desc:    This task runs go fmt on whole project
+    desc: This task formats the whole project
     summary: |
-      This task runs go fmt on whole project
+      This task formats the whole project
       Dependencies:
-      - "gofumpt" - `go install mvdan.cc/gofumpt@latest`
+      - "golangci-lint" - (https://golangci-lint.run/welcome/install/#local-installation)
     cmds:
-    - gofumpt -l -w $(git ls-files '*.go')
+    - golangci-lint fmt
 
   lint:
     desc:    This task runs go lint tool on the whole project

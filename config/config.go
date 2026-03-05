@@ -38,6 +38,7 @@ func LoadConfig(ctx context.Context, filename string, dest any) error {
 		return errorx.Wrap(err, "interpolate config")
 	}
 
+	//nolint:exhaustruct
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		DecodeHook: decodeBase64Strings,
 		Result:     dest,
@@ -60,6 +61,7 @@ func loadConfigFS(ctx context.Context, fspath string) (any, error) {
 		fspath = envPath
 	}
 
+	//nolint:gosec
 	f, err := os.Open(fspath)
 	if err != nil {
 		return nil, errorx.Wrap(err, "open file %s", fspath)
@@ -110,12 +112,18 @@ func readAllString(r io.Reader) (string, error) {
 	return string(b), nil
 }
 
+//nolint:ireturn // decode hook requirements.
 func decodeBase64Strings(s reflect.Type, d reflect.Type, data any) (any, error) {
-	if s.Kind() != reflect.String || d != reflect.SliceOf(reflect.TypeOf(byte(0))) {
+	if s.Kind() != reflect.String || d != reflect.SliceOf(reflect.TypeFor[byte]()) {
 		return data, nil
 	}
 
-	res, err := base64.StdEncoding.DecodeString(data.(string))
+	datas, ok := data.(string)
+	if !ok {
+		return data, nil
+	}
+
+	res, err := base64.StdEncoding.DecodeString(datas)
 
 	return res, errorx.Wrap(err, "decode base64 value")
 }
