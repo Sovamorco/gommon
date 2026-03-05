@@ -64,7 +64,7 @@ func newMinio(_ context.Context, connst string) (storage.Storage, error) {
 }
 
 func (s *Storage) Upload(ctx context.Context, filename string,
-	size int64, uploader string, r io.Reader,
+	size int64, r io.Reader,
 ) (string, error) {
 	fileID := uuid.New().String()
 
@@ -72,7 +72,6 @@ func (s *Storage) Upload(ctx context.Context, filename string,
 	_, err := s.client.PutObject(ctx, s.bucketName, fileID, r, size, minio.PutObjectOptions{
 		UserMetadata: map[string]string{
 			"Filenamebase64": base64.StdEncoding.EncodeToString([]byte(filename)),
-			"Uploader":       uploader,
 		},
 	})
 
@@ -101,14 +100,8 @@ func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, err
 		filename = string(decoded)
 	}
 
-	uploader, ok := info.UserMetadata["Uploader"]
-	if !ok {
-		return nil, errorx.ExternalError.New("missing uploader metadata")
-	}
-
 	return &storage.Metadata{
 		Filename: filename,
-		Uploader: uploader,
 		Size:     info.Size,
 	}, nil
 }

@@ -23,7 +23,6 @@ func init() {
 type object struct {
 	data     []byte
 	filename string
-	uploader string
 }
 
 type Storage struct {
@@ -61,7 +60,7 @@ func newMock(ctx context.Context, _ string) (storage.Storage, error) {
 	return s, nil
 }
 
-func (s *Storage) Upload(ctx context.Context, filename string, _ int64, uploader string, r io.Reader) (string, error) {
+func (s *Storage) Upload(ctx context.Context, filename string, _ int64, r io.Reader) (string, error) {
 	logger := zerolog.Ctx(ctx)
 
 	logger.Debug().Str("filename", filename).Msg("Uploading file")
@@ -79,7 +78,6 @@ func (s *Storage) Upload(ctx context.Context, filename string, _ int64, uploader
 	s.objs[objID] = object{
 		data:     content,
 		filename: filename,
-		uploader: uploader,
 	}
 
 	return objID, nil
@@ -96,7 +94,6 @@ func (s *Storage) Stat(ctx context.Context, path string) (*storage.Metadata, err
 	return &storage.Metadata{
 		Filename: o.filename,
 		Size:     int64(len(o.data)),
-		Uploader: o.uploader,
 	}, nil
 }
 
@@ -113,7 +110,6 @@ func (s *Storage) Download(ctx context.Context, path string) (*storage.Object, e
 		Metadata: &storage.Metadata{
 			Filename: o.filename,
 			Size:     int64(len(o.data)),
-			Uploader: o.uploader,
 		},
 	}, nil
 }
